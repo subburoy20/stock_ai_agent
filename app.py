@@ -4,31 +4,43 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 st.set_page_config(page_title="📊 Stock AI Agent", layout="centered")
 st.title("📊 Stock AI Agent System (Free)")
-st.markdown("Enter stock symbol like `TCS`, `RELIANCE` to get analysis.")
+st.markdown("This app analyzes stock sentiment using Twitter. Works 100% free, no API key needed.")
 
-stock = st.text_input("Enter Stock Symbol (Example: TCS)")
+# Input Section
+stock = st.text_input("Enter Stock Symbol (Example: TCS, RELIANCE, INFY)")
 
-# 🐦 Twitter Sentiment Function
+# 🐦 Twitter Sentiment Agent Function
 def twitter_sentiment(stock_name):
     analyzer = SentimentIntensityAnalyzer()
     tweets = []
     for i, tweet in enumerate(sntwitter.TwitterSearchScraper(f"{stock_name} stock since:2023-07-01").get_items()):
-        if i > 50: break
+        if i > 50:
+            break
         tweets.append(tweet.content)
 
+    if not tweets:
+        return "No tweets found", 0
+
+    # Analyze each tweet
     scores = [analyzer.polarity_scores(t)["compound"] for t in tweets]
-    avg_score = sum(scores) / len(scores) if scores else 0
-    return round(avg_score, 2)
+    avg_score = sum(scores) / len(scores)
+    return "✅ Success", round(avg_score, 2)
 
-# 🔍 When Button is Clicked
+# Button to Run Analysis
 if st.button("Run Analysis"):
-    st.success(f"Running Twitter Sentiment Analysis for {stock}...")
-
-    sentiment_score = twitter_sentiment(stock)
-    
-    if sentiment_score > 0:
-        st.markdown(f"📈 **Positive Sentiment Score:** `{sentiment_score}`")
-    elif sentiment_score < 0:
-        st.markdown(f"📉 **Negative Sentiment Score:** `{sentiment_score}`")
+    if stock.strip() == "":
+        st.warning("⚠️ Please enter a valid stock name.")
     else:
-        st.markdown(f"⚖️ **Neutral Sentiment Score:** `{sentiment_score}`")
+        st.info(f"🔍 Searching tweets for: {stock}...")
+        status, sentiment_score = twitter_sentiment(stock)
+
+        if status == "No tweets found":
+            st.error("❌ No tweets found. Try another stock.")
+        else:
+            st.success(f"✅ Twitter Sentiment Score: {sentiment_score}")
+            if sentiment_score > 0.05:
+                st.markdown("📈 **Overall: Positive Sentiment**")
+            elif sentiment_score < -0.05:
+                st.markdown("📉 **Overall: Negative Sentiment**")
+            else:
+                st.markdown("⚖️ **Overall: Neutral Sentiment**")
