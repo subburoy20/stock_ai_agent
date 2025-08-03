@@ -1,0 +1,11 @@
+streamlit
+yfinance
+snscrape
+vaderSentiment
+pandas
+pandas_ta
+matplotlib
+plotly
+openpyxl
+beautifulsoup4
+requests
